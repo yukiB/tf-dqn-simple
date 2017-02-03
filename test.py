@@ -55,7 +55,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # environmet, agent
-    env = AvoidBall()
+    env = AvoidBall(time_limit=False)
     agent = DQNAgent(env.enable_actions, env.name)
     agent.load_model(args.model_path)
 

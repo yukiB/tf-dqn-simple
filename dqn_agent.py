@@ -43,7 +43,7 @@ class DQNAgent:
 
         # output layer (n_actions)
         W_out = tf.Variable(tf.truncated_normal([64, self.n_actions], stddev=0.01))
-        b_out = tf.Variable(tf.zeros([self.n_actions]))   
+        b_out = tf.Variable(tf.zeros([self.n_actions]))
         y = tf.matmul(h_fc1, W_out) + b_out
         return y
 
@@ -60,11 +60,11 @@ class DQNAgent:
         # input layer (8 x 8)
         self.x = tf.placeholder(tf.float32, [None, 8, 8])
         self.y_ = tf.placeholder(tf.float32, [None, self.n_actions])
-        
+
         self.y = self.inference(self.x)
         self.loss = self.lossfunc(self.y, self.y_)
         self.training = self.trainingfunc(self.loss)
-  
+
         # saver
         self.saver = tf.train.Saver()
 
@@ -115,7 +115,8 @@ class DQNAgent:
         self.sess.run(self.training, feed_dict={self.x: state_minibatch, self.y_: y_minibatch})
 
         # for log
-        self.current_loss = self.sess.run(self.loss, feed_dict={self.x: state_minibatch, self.y_: y_minibatch})
+        self.current_loss = self.sess.run(
+            self.loss, feed_dict={self.x: state_minibatch, self.y_: y_minibatch})
 
     def load_model(self, model_path=None):
         if model_path:

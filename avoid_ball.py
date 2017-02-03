@@ -1,8 +1,10 @@
 import os
 import numpy as np
+import copy
 
 
 class Ball:
+
     def __init__(self, col):
         self.col = col
         self.row = 0
@@ -15,7 +17,8 @@ class Ball:
 
 
 class AvoidBall:
-    def __init__(self):
+
+    def __init__(self, time_limit=True):
         # parameters
         self.name = os.path.splitext(os.path.basename(__file__))[0]
         self.screen_n_rows = 8
@@ -27,6 +30,7 @@ class AvoidBall:
         self.ball_past_time = 0
         self.past_time = 0
         self.balls = []
+        self.time_limit = time_limit
 
         # variables
         self.reset()
@@ -40,7 +44,7 @@ class AvoidBall:
         """
         if self.terminal:
             self.reset()
-            
+
         # update player position
         if action == self.enable_actions[1]:
             # move left
@@ -62,13 +66,14 @@ class AvoidBall:
         else:
             self.ball_past_time += 1
 
-        self.past_time += 1
-        if self.past_time > 100:
-            self.terminal = True
-
         # collision detection
         self.reward = 0
         self.terminal = False
+
+        self.past_time += 1
+        if self.time_limit and self.past_time > 100:
+            self.terminal = True
+
         if self.balls[0].row == self.screen_n_rows - 1:
             if self.player_col <= self.balls[0].col < self.player_col + self.player_length:
                 # catch
@@ -78,10 +83,11 @@ class AvoidBall:
                 # drop
                 self.reward = +1
 
-
+        new_balls = []
         for b in self.balls:
-            if b.isDroped(self.screen_n_rows):
-                self.balls.pop(0)
+            if not b.isDroped(self.screen_n_rows):
+                new_balls.append(b)
+        self.balls = copy.copy(new_balls)
 
     def draw(self):
         # reset screen
@@ -113,3 +119,5 @@ class AvoidBall:
         # reset other variables
         self.reward = 0
         self.terminal = False
+        self.past_time = 0
+        self.ball_past_time = 0
