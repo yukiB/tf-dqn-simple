@@ -33,12 +33,8 @@ class DQNAgent:
         # variables
         self.current_loss = 0.0
 
-    def init_model(self):
-        # input layer (8 x 8)
-        self.x = tf.placeholder(tf.float32, [None, 8, 8])
-
-        # flatten (64)
-        x_flat = tf.reshape(self.x, [-1, 64])
+    def inference(self, input):
+        x_flat = tf.reshape(input, [-1, 64])
 
         # fully connected layer (32)
         W_fc1 = tf.Variable(tf.truncated_normal([64, 64], stddev=0.01))
@@ -47,17 +43,28 @@ class DQNAgent:
 
         # output layer (n_actions)
         W_out = tf.Variable(tf.truncated_normal([64, self.n_actions], stddev=0.01))
-        b_out = tf.Variable(tf.zeros([self.n_actions]))
-        self.y = tf.matmul(h_fc1, W_out) + b_out
+        b_out = tf.Variable(tf.zeros([self.n_actions]))   
+        y = tf.matmul(h_fc1, W_out) + b_out
+        return y
 
-        # loss function
-        self.y_ = tf.placeholder(tf.float32, [None, self.n_actions])
-        self.loss = tf.reduce_mean(tf.square(self.y_ - self.y))
+    def lossfunc(self, output, supervisor):
+        loss = tf.reduce_mean(tf.square(supervisor - output))
+        return loss
 
-        # train operation
+    def trainingfunc(self, loss):
         optimizer = tf.train.RMSPropOptimizer(self.learning_rate)
-        self.training = optimizer.minimize(self.loss)
+        training = optimizer.minimize(self.loss)
+        return training
 
+    def init_model(self):
+        # input layer (8 x 8)
+        self.x = tf.placeholder(tf.float32, [None, 8, 8])
+        self.y_ = tf.placeholder(tf.float32, [None, self.n_actions])
+        
+        self.y = self.inference(self.x)
+        self.loss = self.lossfunc(self.y, self.y_)
+        self.training = self.trainingfunc(self.loss)
+  
         # saver
         self.saver = tf.train.Saver()
 
@@ -67,7 +74,8 @@ class DQNAgent:
 
     def Q_values(self, state):
         # Q(state, action) of all actions
-        return self.sess.run(self.y, feed_dict={self.x: [state]})[0]
+        res = self.sess.run(self.y, feed_dict={self.x: [state]})
+        return res[0]
 
     def select_action(self, state, epsilon):
         if np.random.rand() <= epsilon:
@@ -97,7 +105,7 @@ class DQNAgent:
             if terminal:
                 y_j[action_j_index] = reward_j
             else:
-                # reward_j + gamma * max_action' Q(state', action')
+                # reward_j + gamma * max_action' Q(state', action') alpha(learing rate) = 1
                 y_j[action_j_index] = reward_j + self.discount_factor * np.max(self.Q_values(state_j_1))  # NOQA
 
             state_minibatch.append(state_j)

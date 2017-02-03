@@ -1,15 +1,15 @@
 import numpy as np
 
-from catch_ball import CatchBall
+from avoid_ball import AvoidBall
 from dqn_agent import DQNAgent
 
 
 if __name__ == "__main__":
     # parameters
-    n_epochs = 1000
+    n_epochs = 200
 
     # environment, agent
-    env = CatchBall()
+    env = AvoidBall()
     agent = DQNAgent(env.enable_actions, env.name)
 
     # variables

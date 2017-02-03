@@ -6,8 +6,10 @@ import os
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 
-from catch_ball import CatchBall
+from avoid_ball import AvoidBall
 from dqn_agent import DQNAgent
+
+past_time = 0
 
 
 def init():
@@ -17,19 +19,16 @@ def init():
 
 
 def animate(step):
-    global win, lose
+    global win, lose, past_time
     global state_t_1, reward_t, terminal
+
+    past_time += 1
 
     if terminal:
         env.reset()
 
-        # for log
-        if reward_t == 1:
-            win += 1
-        elif reward_t == -1:
-            lose += 1
-
-        print("WIN: {:03d}/{:03d} ({:.1f}%)".format(win, win + lose, 100 * win / (win + lose)))
+        print("SCORE: {:03d}".format(past_time))
+        past_time = 0
 
     else:
         state_t = state_t_1
@@ -56,7 +55,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # environmet, agent
-    env = CatchBall()
+    env = AvoidBall()
     agent = DQNAgent(env.enable_actions, env.name)
     agent.load_model(args.model_path)
 
@@ -75,6 +74,7 @@ if __name__ == "__main__":
         ani_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "tmp", "demo-{}.gif".format(env.name))
         ani.save(ani_path, writer="imagemagick", fps=env.frame_rate)
+        print(ani_path)
     else:
         # show animation
         plt.show()
